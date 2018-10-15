@@ -2,7 +2,7 @@
   "dbpath" : "db",
   "repos" : {
     "Hound" : {
-      "url" : "https://github.com/etsy/hound.git"
+      "url" : "git@github.com:wi-cuckoo/hound.git"
     }
   }
 }

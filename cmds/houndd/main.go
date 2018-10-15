@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"runtime"
@@ -16,7 +15,6 @@ import (
 	"github.com/etsy/hound/api"
 	"github.com/etsy/hound/config"
 	"github.com/etsy/hound/searcher"
-	"github.com/etsy/hound/ui"
 )
 
 const gracefulShutdownSignal = syscall.SIGTERM
@@ -44,7 +42,7 @@ func makeSearchers(cfg *config.Config) (map[string]*searcher.Searcher, bool, err
 	if len(errs) > 0 {
 		// NOTE: This mutates the original config so the repos
 		// are not even seen by other code paths.
-		for name, _ := range errs {
+		for name := range errs {
 			delete(cfg.Repos, name)
 		}
 
@@ -97,17 +95,9 @@ func makeTemplateData(cfg *config.Config) (interface{}, error) {
 
 func runHttp(
 	addr string,
-	dev bool,
-	cfg *config.Config,
 	idx map[string]*searcher.Searcher) error {
 	m := http.DefaultServeMux
 
-	h, err := ui.Content(dev, cfg)
-	if err != nil {
-		return err
-	}
-
-	m.Handle("/", h)
 	api.Setup(m, idx)
 	return http.ListenAndServe(addr, m)
 }
@@ -119,7 +109,6 @@ func main() {
 
 	flagConf := flag.String("conf", "config.json", "")
 	flagAddr := flag.String("addr", ":6080", "")
-	flagDev := flag.Bool("dev", false, "")
 
 	flag.Parse()
 
@@ -148,21 +137,9 @@ func main() {
 		host = "localhost" + host
 	}
 
-	if *flagDev {
-		info_log.Printf("[DEV] starting webpack-dev-server at localhost:8080...")
-		webpack := exec.Command("./node_modules/.bin/webpack-dev-server", "--mode", "development")
-		webpack.Dir = basepath + "/../../"
-		webpack.Stdout = os.Stdout
-		webpack.Stderr = os.Stderr
-		err = webpack.Start()
-		if err != nil {
-			error_log.Println(err)
-		}
-	}
-
 	info_log.Printf("running server at http://%s...\n", host)
 
-	if err := runHttp(*flagAddr, *flagDev, &cfg, idx); err != nil {
-		panic(err)
-	}
+	m := http.DefaultServeMux
+	api.Setup(m, idx)
+	log.Fatal(http.ListenAndServe(host, m))
 }
