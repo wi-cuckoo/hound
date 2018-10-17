@@ -223,13 +223,7 @@ func findExistingRefs(dbpath string) (*foundRefs, error) {
 // Open an index at the given path. If the idxDir is already present, it will
 // simply open and use that index. If, however, the idxDir does not exist a new
 // one will be built.
-func buildAndOpenIndex(
-	opt *index.IndexOptions,
-	dbpath,
-	vcsDir,
-	idxDir,
-	url,
-	rev string) (*index.Index, error) {
+func buildAndOpenIndex(opt *index.IndexOptions, dbpath, vcsDir, idxDir, url, rev string) (*index.Index, error) {
 	if _, err := os.Stat(idxDir); err != nil {
 		r, err := index.Build(opt, idxDir, vcsDir, url, rev)
 		if err != nil {
@@ -386,11 +380,7 @@ func updateAndReindex(
 
 // Creates a new Searcher that is capable of re-claiming an existing index directory
 // from a set of existing manifests.
-func newSearcher(
-	dbpath, name string,
-	repo *config.Repo,
-	refs *foundRefs,
-	lim limiter) (*Searcher, error) {
+func newSearcher(dbpath, name string, repo *config.Repo, refs *foundRefs, lim limiter) (*Searcher, error) {
 
 	vcsDir := filepath.Join(dbpath, vcsDirFor(repo))
 
@@ -413,6 +403,9 @@ func newSearcher(
 	if err != nil {
 		return nil, err
 	}
+
+	// remove to save disk space
+	defer os.RemoveAll(vcsDir)
 
 	var idxDir string
 	ref := refs.find(repo.Url, rev)
@@ -443,7 +436,7 @@ func newSearcher(
 	}
 
 	go func() {
-
+		return // for temp
 		// each searcher's poller is held until begin is called.
 		<-s.updateCh
 
@@ -491,12 +484,7 @@ func newSearcher(
 // This function is a wrapper around `newSearcher` function.
 // It respects the parameter `cfg.MaxConcurrentIndexers` while making the
 // creation of searchers for various repositories concurrent.
-func newSearcherConcurrent(
-	dbpath, name string,
-	repo *config.Repo,
-	refs *foundRefs,
-	lim limiter,
-	resultCh chan searcherResult) {
+func newSearcherConcurrent(dbpath, name string, repo *config.Repo, refs *foundRefs, lim limiter, resultCh chan searcherResult) {
 
 	// acquire a token from the rate limiter
 	lim.Acquire()
