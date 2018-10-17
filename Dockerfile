@@ -1,20 +1,11 @@
-FROM alpine
+FROM hub.dz11.com/op-base/alpine-glibc:2.25-r1
 
-ENV GOPATH /go
+COPY release/houndd /opt
 
-COPY . /go/src/github.com/etsy/hound
-
-COPY default-config.json /data/config.json
-
-RUN apk update \
-	&& apk add go git subversion libc-dev mercurial bzr openssh \
-	&& go install github.com/etsy/hound/cmds/houndd \
-	&& apk del go \
-	&& rm -f /var/cache/apk/* \
-	&& rm -rf /go/src /go/pkg
+RUN apk update && apk upgrade && apk add --no-cache git openssh-client
 
 VOLUME ["/data"]
 
 EXPOSE 6080
 
-ENTRYPOINT ["/go/bin/houndd", "-conf", "/data/config.json"]
+ENTRYPOINT ["/opt/houndd", "-conf", "/data/config.json"]
