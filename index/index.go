@@ -360,6 +360,7 @@ func indexAllFiles(opt *IndexOptions, dst, src string) error {
 		// Is this file considered "special", this means it's not even a part
 		// of the source repository (like .git or .svn).
 		if containsString(opt.SpecialFiles, name) {
+			fmt.Println(name, info.IsDir())
 			if info.IsDir() {
 				return filepath.SkipDir
 			}

@@ -1,8 +1,10 @@
 {
   "dbpath" : "db",
+  "exclude-files": [".git", "fuck"],
   "repos" : {
-    "Hound" : {
-      "url" : "git@github.com:wi-cuckoo/hound.git"
+    "wi-cuckoo/hound": {
+      "url": "git@github.com:wi-cuckoo/hound.git",
+      "exclude-files": ["misc", "vendor", "vcs"]
     }
   }
 }

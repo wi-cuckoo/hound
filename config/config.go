@@ -29,6 +29,7 @@ type Repo struct {
 	VcsConfigMessage  *SecretMessage `json:"vcs-config"`
 	UrlPattern        *UrlPattern    `json:"url-pattern"`
 	ExcludeDotFiles   bool           `json:"exclude-dot-files"`
+	ExcludeFiles      []string       `json:"exclude-files"`
 	EnablePollUpdates *bool          `json:"enable-poll-updates"`
 	EnablePushUpdates *bool          `json:"enable-push-updates"`
 }
@@ -54,6 +55,7 @@ func (r *Repo) PushUpdatesEnabled() bool {
 
 type Config struct {
 	DbPath                string           `json:"dbpath"`
+	ExcludeFiles          []string         `json:"exclude-files"`
 	Repos                 map[string]*Repo `json:"repos"`
 	MaxConcurrentIndexers int              `json:"max-concurrent-indexers"`
 }

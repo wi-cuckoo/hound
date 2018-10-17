@@ -293,6 +293,7 @@ func MakeAll(cfg *config.Config) (map[string]*Searcher, map[string]error, error)
 	// Start new searchers for all repos in different go routines while
 	// respecting cfg.MaxConcurrentIndexers.
 	for name, repo := range cfg.Repos {
+		repo.ExcludeFiles = append(repo.ExcludeFiles, cfg.ExcludeFiles...)
 		go newSearcherConcurrent(cfg.DbPath, name, repo, refs, lim, resultCh)
 	}
 
@@ -400,9 +401,12 @@ func newSearcher(
 		return nil, err
 	}
 
+	excludeFiles := repo.ExcludeFiles
+	excludeFiles = append(excludeFiles, wd.SpecialFiles()...)
+
 	opt := &index.IndexOptions{
 		ExcludeDotFiles: repo.ExcludeDotFiles,
-		SpecialFiles:    wd.SpecialFiles(),
+		SpecialFiles:    excludeFiles,
 	}
 
 	rev, err := wd.PullOrClone(vcsDir, repo.Url)
@@ -501,8 +505,8 @@ func newSearcherConcurrent(
 	s, err := newSearcher(dbpath, name, repo, refs, lim)
 	if err != nil {
 		resultCh <- searcherResult{
-			name:     name,
-			err:      err,
+			name: name,
+			err:  err,
 		}
 		return
 	}
